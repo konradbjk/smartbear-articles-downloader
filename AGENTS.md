@@ -32,13 +32,15 @@ Make sure to keep the Todo List / Plan up-to date
 
 **STOP** before **writing code for the first time**, or **after a trajectory correction**.
 
-For EVERY request:
+Orientation is required only when starting work on a task or after a true trajectory change.
+Skip it for small edits (single-file text updates, simple renames) or follow-up tweaks.
+If already oriented in the same task, don't repeat it.
+
+When you do orient:
 1. Say: "Let me first examine how this currently works..."
 2. Use Read/Grep to understand the actual implementation
 3. State: "Current implementation: [what you found]"
 4. Then: "Based on this, I'll [approach]"
-
-Never skip orientation. Ever.
 
 ## Principle 2: Minimal Change
 
