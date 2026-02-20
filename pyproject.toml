@@ -1,0 +1,33 @@
+[project]
+name = "smartbear-articles"
+version = "0.1.0"
+description = "Download and export the SmartBear Longform collection."
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "beautifulsoup4",
+    "dateparser",
+    "html2text",
+    "htmldate",
+    "regex",
+    "requests",
+    "typer",
+    "ruff",
+]
+
+[project.scripts]
+smartbear-articles = "smartbear_articles.cli:app"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/smartbear_articles"]
+
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
