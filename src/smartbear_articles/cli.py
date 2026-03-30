@@ -1,10 +1,10 @@
 import shutil
-import subprocess
 from pathlib import Path
 
 import typer
 
 from smartbear_articles.downloader import fetch_articles
+from smartbear_articles.exporter import create_epub, create_pdf, merge_articles
 
 app = typer.Typer(
     add_completion=False,
@@ -12,9 +12,7 @@ app = typer.Typer(
 )
 
 ROOT_OPTION = typer.Option(None, "--root", help="Project root.")
-CLEAN_ROOT_OPTION = typer.Option(
-    None, "--root", help="Project root where outputs are stored."
-)
+CLEAN_ROOT_OPTION = typer.Option(None, "--root", help="Project root where outputs are stored.")
 DELAY_OPTION = typer.Option(0.05, "--delay", help="Delay between requests.")
 MARKDOWN_OPTION = typer.Option(
     False, "--markdown/--no-markdown", help="Download articles as markdown files."
@@ -25,17 +23,6 @@ CSV_PATH_OPTION = typer.Option(None, "--csv-path", help="Optional path for the C
 
 def _resolve_root(root: Path | None) -> Path:
     return root.resolve() if root else Path.cwd()
-
-
-def _require_tool(name: str) -> str:
-    tool_path = shutil.which(name)
-    if not tool_path:
-        typer.secho(
-            f"Missing required tool: {name}. Install it and ensure it's on PATH.",
-            fg=typer.colors.RED,
-        )
-        raise typer.Exit(code=1)
-    return tool_path
 
 
 @app.command()
@@ -93,17 +80,7 @@ def merge(
 ) -> None:
     """Merge all articles into a single markdown file using pandoc."""
     base = _resolve_root(root)
-    articles_dir = base / "articles"
-    if not articles_dir.exists():
-        typer.secho("Articles directory not found. Run fetch first.", fg=typer.colors.RED)
-        raise typer.Exit(code=1)
-
-    _require_tool("pandoc")
-    output_path = base / "smartbear.md"
-    subprocess.run(
-        ["pandoc", *map(str, sorted(articles_dir.glob("*.md"))), "-o", str(output_path)],
-        check=True,
-    )
+    output_path = merge_articles(base)
     typer.echo(f"Wrote {output_path.name}.")
 
 
@@ -113,34 +90,7 @@ def epub(
 ) -> None:
     """Create an EPUB using pandoc."""
     base = _resolve_root(root)
-    articles_dir = base / "articles"
-    if not articles_dir.exists():
-        typer.secho("Articles directory not found. Run fetch first.", fg=typer.colors.RED)
-        raise typer.Exit(code=1)
-
-    _require_tool("pandoc")
-    output_path = base / "smartbear.epub"
-    metadata_path = base / "metadata.yaml"
-    cover_path = base / "cover.png"
-    subprocess.run(
-        [
-            "pandoc",
-            *map(str, sorted(articles_dir.glob("*.md"))),
-            "-o",
-            str(output_path),
-            "-t",
-            "epub3",
-            "-f",
-            "markdown",
-            "--metadata-file",
-            str(metadata_path),
-            "--toc",
-            "--toc-depth=1",
-            "--epub-cover-image",
-            str(cover_path),
-        ],
-        check=True,
-    )
+    output_path = create_epub(base)
     typer.echo(f"Wrote {output_path.name}.")
 
 
@@ -150,17 +100,7 @@ def pdf(
 ) -> None:
     """Create a PDF via calibre's ebook-convert."""
     base = _resolve_root(root)
-    epub_path = base / "smartbear.epub"
-    if not epub_path.exists():
-        typer.secho("EPUB not found. Run epub first.", fg=typer.colors.RED)
-        raise typer.Exit(code=1)
-
-    _require_tool("ebook-convert")
-    output_path = base / "smartbear.pdf"
-    subprocess.run(
-        ["ebook-convert", str(epub_path), str(output_path)],
-        check=True,
-    )
+    output_path = create_pdf(base)
     typer.echo(f"Wrote {output_path.name}.")
 
 

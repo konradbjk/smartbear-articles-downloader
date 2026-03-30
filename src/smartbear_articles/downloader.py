@@ -86,6 +86,19 @@ def _convert_to_pandoc_footnotes(text: bytes | str) -> bytes:
     return text.encode("utf-8")
 
 
+def _namespace_footnotes(text: str, prefix: str) -> str:
+    def replace(match: re.Match) -> str:
+        label = match.group("label")
+        suffix = ":" if match.group("definition") else ""
+        return f"[^{prefix}-{label}]{suffix}"
+
+    return re.sub(
+        r"\[\^(?P<label>[^\]\s]+)\](?P<definition>:)?",
+        replace,
+        text,
+    )
+
+
 def _yaml_escape(value: str) -> str:
     return value.replace("\\", "\\\\").replace('"', '\\"')
 
@@ -319,6 +332,7 @@ def _write_markdown_file(
             date_value = _normalize_date(find_date(content))
 
     normalized_title = re.sub(r"[\W\s]+", "", "_".join(title.split(" ")).lower())
+    footnote_prefix = str(index).zfill(3)
 
     output_path = output_dir / f"{str(index).zfill(3)}_{normalized_title}.md"
     with output_path.open("wb+") as file:
@@ -340,7 +354,7 @@ def _write_markdown_file(
         file.write(frontmatter.encode())
         file.write(f"# {str(index).zfill(3)} {title}\n\n".encode())
         if markdown_url:
-            file.write(parsed.encode())
+            file.write(_namespace_footnotes(parsed, footnote_prefix).encode())
         else:
             parsed = parsed.replace("[](index.html)  \n  \n", "")
 
@@ -358,7 +372,9 @@ def _write_markdown_file(
 
             encoded = " ".join(parsed_lines).encode()
             processed_content = _convert_to_pandoc_footnotes(encoded)
-            file.write(processed_content)
+            file.write(
+                _namespace_footnotes(processed_content.decode("utf-8"), footnote_prefix).encode()
+            )
 
     return output_path
 
