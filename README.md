@@ -1,6 +1,6 @@
 # SmartBear Longform Collection
 
-This is the new maintained version under `konradbjk/svpg-articles-downloader`.
+This is the maintained version at `https://github.com/konradbjk/smartbear-articles-downloader`.
 It is based on the original project and keeps the same spirit,
 while modernizing the tooling and CLI for SmartBear Longform.
 
@@ -40,6 +40,9 @@ uv run smartbear-articles pdf
 uv run smartbear-articles wordcount
 ```
 
+`fetch` downloads article markdown and metadata only.
+`merge`, `epub`, and `pdf` are export steps you can run separately when needed.
+
 Or run everything at once:
 
 ```bash
@@ -77,7 +80,7 @@ uv run smartbear-articles fetch --csv-path data/articles.csv
 
 ### External Tools
 
-These commands rely on external tools:
+Only the export commands rely on external tools:
 
 - `pandoc` (for `merge` and `epub`)
 - `calibre` (for `pdf`, which uses `ebook-convert`)
