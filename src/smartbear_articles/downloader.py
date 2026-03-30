@@ -91,13 +91,22 @@ def _yaml_escape(value: str) -> str:
 
 
 def _extract_description(parsed_text: str) -> str:
+    lines = []
     for line in (line.strip() for line in parsed_text.splitlines()):
         if not line:
             continue
         if len(line) < 20:
             continue
-        return line
-    return ""
+        lines.append(line)
+    return "\n".join(lines)
+
+
+def _yaml_field(name: str, value: str) -> str:
+    if "\n" not in value:
+        return f'{name}: "{_yaml_escape(value)}"'
+
+    lines = "\n".join(f"  {line}" for line in value.splitlines())
+    return f"{name}: |-\n{lines}"
 
 
 def _normalize_date(value: str) -> str:
@@ -317,7 +326,7 @@ def _write_markdown_file(
             [
                 "---",
                 f'title: "{_yaml_escape(title)}"',
-                f'description: "{_yaml_escape(description)}"',
+                _yaml_field("description", description),
                 f'date: "{date_value}"',
                 f'updated: "{updated_value}"',
                 f'author: "{_yaml_escape(author)}"',
@@ -374,9 +383,7 @@ def _write_csv_row(
     guid = entry["guid"]
 
     with csv_path.open("a+", newline="\n") as csv_file:
-        csvwriter = csv.writer(
-            csv_file, quoting=csv.QUOTE_MINIMAL, delimiter=",", quotechar='"'
-        )
+        csvwriter = csv.writer(csv_file, quoting=csv.QUOTE_MINIMAL, delimiter=",", quotechar='"')
         csvwriter.writerow(
             [
                 str(index).zfill(3),
