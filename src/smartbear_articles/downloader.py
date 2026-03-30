@@ -178,6 +178,7 @@ def fetch_articles(
             csvwriter.writeheader()
 
     html_parser = html2text.HTML2Text()
+    html_parser.body_width = 0
     html_parser.ignore_images = True
     html_parser.ignore_tables = True
     html_parser.escape_all = True
